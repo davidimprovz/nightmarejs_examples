@@ -1,10 +1,8 @@
-// NOTE: code has known scoping issues with the implementation of the instantiated changes() class.
-
 // requirements
 const Nightmare = require('nightmare');
 const fs = require('fs');
 
-// page to browse with a main selector
+// pages to browse with a main selector
 const url = 'http://www.nasdaq.com/markets/stocks/symbol-change-history.aspx';
 
 /**
@@ -57,24 +55,27 @@ function iterateNightmare(url){
     	return obj;
     })
     .end()
-    .run(function(error, result) { // get the results
+    .run(function(error, result, data_dock) { // get the results...data_dock is the changes class instance
       if (error) { console.error(error); } // look for errors
       else { // if no errs
 
-        changes.addData(result.tableData); // use setter to append scraped data
+        data_dock.addData(result.tableData); // use setter to append scraped data
 
         if (result.nextPage != 'none') { // if there are more pages	
-        	changes.addLink(result.nextPage); // use setter to append scraped link
+        	data_dock.addLink(result.nextPage); // use setter to append scraped link
         	console.log( `Now scraping ${result.nextPage}` );
         	iterateNightmare(result.nextPage)
         }
         else {
         	console.log( `Scraped ${arr.length + 1} pages` ); // count out # of page scrapes
-        	console.log( changes.saveData() ); // save the data to disk and report
-        	console.log( changes.saveLinks() ); // save the links to disk and report
+        	console.log( data_dock.saveData() ); // save the data to disk and report
+        	console.log( data_dock.saveLinks() ); // save the links to disk and report
         }
       }
-    })
+    }, changes)
+    .catch(function(err){
+    	if (err){ console.log(err); }
+    });
 }
 
 // instantiate the class
