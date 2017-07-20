@@ -42,23 +42,28 @@ function tickerChanges(selector, clicker){
 }
 
 function iterateNightmare(url){
+	console.log('scrape started');
   let nightmare = Nightmare({ show: false }); // get a nightmare instance
 
   nightmare.goto(url)
-  	.evaluate(function() {
+  	.wait('table.SymbolChangeList')
+  	.evaluate(function(data_dock){
+  		console.log('scrape started');
+  		console.log(data_dock.selector);
   		// check if there's a link to follow and add it to the stack
   		let obj = {
-		    tableData: Array.from(document.querySelectorAll(changes.selector))
+		    tableData: Array.from(document.querySelectorAll(data_dock.selector))
           					.map((element) => element.innerText),
-		    nextPage: document.getElementById(changes.clicker)[0].href ? document.getElementsByClassName('next')[0].href : 'none',
+		    nextPage: document.getElementById(data_dock.clicker)[0].href ? document.getElementsByClassName('next')[0].href : 'none',
 	    }
+	    console.log('fist scrape');
     	return obj;
-    })
+    }, changes)
     .end()
     .run(function(error, result, data_dock) { // get the results...data_dock is the changes class instance
       if (error) { console.error(error); } // look for errors
       else { // if no errs
-
+      	console.log('formatting started');
         data_dock.addData(result.tableData); // use setter to append scraped data
 
         if (result.nextPage != 'none') { // if there are more pages	
@@ -83,4 +88,5 @@ const select = 'table.SymbolChangeList td'; // a collection of child elems
 const clicker = 'two_column_main_content_lb_NextPage'; // an element id
 var changes = new tickerChanges(select, clicker);
 
+console.log('starting the scrape');
 iterateNightmare(url);
